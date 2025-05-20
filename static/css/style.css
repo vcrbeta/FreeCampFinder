@@ -1,0 +1,33 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0;
+    background-color: #f5f5f5;
+}
+
+header, footer {
+    background-color: #2a6f97;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+main {
+    padding: 1rem 2rem;
+}
+
+h1, h2 {
+    margin-bottom: 1rem;
+}
+
+#camping-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#camping-list li {
+    background: white;
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 0 5px #ccc;
+}
