@@ -3,6 +3,16 @@
 <head>
     <meta charset="UTF-8" />
     <title>{% block title %}Public Land Camping Finder{% endblock %}</title>
+
+    <!-- Leaflet styles and scripts -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    />
+    <script
+        src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    ></script>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
