@@ -1,6 +1,6 @@
 
 from flask_sqlalchemy import SQLAlchemy
-
+#just holding space
 db = SQLAlchemy()
 
 class Campsite(db.Model):
