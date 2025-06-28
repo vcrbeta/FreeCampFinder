@@ -1,16 +1,17 @@
-
 from flask_sqlalchemy import SQLAlchemy
-#just holding space
+
+# Create a database object
 db = SQLAlchemy()
 
-class Campsite(db.Model):
-    __tablename__ = 'campsites'
+class CampingSpot(db.Model):
+    __tablename__ = "camping_spots"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    location = db.Column(db.String(100))
-    amenities = db.Column(db.String(200))
-    rules = db.Column(db.String(200))
+    location = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
 
     def __repr__(self):
-        return f"<Campsite {self.name}>"
+        return f"<CampingSpot id={self.id} name={self.name} location={self.location}>"
