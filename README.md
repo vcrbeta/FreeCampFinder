@@ -16,3 +16,7 @@ pip install -r requirements.txt
 
 python app.py
 
+export FLASK_RUN_OPEN_BROWSER=true
+flask run
+
+

@@ -4,10 +4,56 @@
 
 {% block content %}
     <section>
-        <h2>Available Camping Spots</h2>
+        <h2>Find Camping Spots</h2>
+        
+        <!-- NEW: State Filter Dropdown -->
+        <div style="margin-bottom: 1rem;">
+            <label for="state-filter"><strong>Filter by State:</strong></label>
+            <select id="state-filter" style="margin-left: 0.5rem; padding: 0.5rem;">
+                <option value="">All States</option>
+                <option value="CO">Colorado</option>
+                <option value="CA">California</option>
+                <option value="AZ">Arizona</option>
+                <option value="UT">Utah</option>
+                <option value="NV">Nevada</option>
+                <option value="WY">Wyoming</option>
+                <option value="MT">Montana</option>
+                <option value="ID">Idaho</option>
+                <option value="WA">Washington</option>
+                <option value="OR">Oregon</option>
+            </select>
+        </div>
+
+        <h3>Available Camping Spots</h3>
         <ul id="camping-list">
             <!-- Spots will be loaded here by JS -->
         </ul>
+    </section>
+
+    <!-- NEW: Add Spot Form (for testing) -->
+    <section style="margin-top: 2rem; padding: 1rem; background: white; border-radius: 5px;">
+        <h3>Add a New Camping Spot</h3>
+        <form id="add-spot-form">
+            <div style="margin-bottom: 1rem;">
+                <input type="text" id="spot-name" placeholder="Spot Name" required style="width: 100%; padding: 0.5rem;" />
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <input type="text" id="spot-location" placeholder="Location Description" required style="width: 100%; padding: 0.5rem;" />
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <input type="text" id="spot-state" placeholder="State (e.g., CO)" required style="width: 100%; padding: 0.5rem;" />
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <textarea id="spot-description" placeholder="Description" style="width: 100%; padding: 0.5rem; height: 80px;"></textarea>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <input type="number" id="spot-latitude" placeholder="Latitude" step="any" style="width: 48%; padding: 0.5rem;" />
+                <input type="number" id="spot-longitude" placeholder="Longitude" step="any" style="width: 48%; padding: 0.5rem; margin-left: 4%;" />
+            </div>
+            <button type="submit" style="background: #2a6f97; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 5px; cursor: pointer;">
+                Add Spot
+            </button>
+        </form>
     </section>
 
     <section>

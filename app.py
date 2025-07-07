@@ -13,6 +13,7 @@ class CampingSpot(db.Model):
     name = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
+    state = db.Column(db.String(2))  # NEW: Added state field
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
 
@@ -31,6 +32,7 @@ def camping_spots():
             name=data.get("name"),
             location=data.get("location"),
             description=data.get("description"),
+            state=data.get("state"),  # NEW: Handle state in POST
             latitude=data.get("latitude"),
             longitude=data.get("longitude")
         )
@@ -38,12 +40,19 @@ def camping_spots():
         db.session.commit()
         return jsonify({"success": True, "id": new_spot.id}), 201
 
-    spots = CampingSpot.query.all()
+    # NEW: Handle state filtering in GET request
+    state = request.args.get("state")
+    query = CampingSpot.query
+    if state:
+        query = query.filter_by(state=state)
+    
+    spots = query.all()
     return jsonify([
         {
             "name": s.name,
             "location": s.location,
             "description": s.description,
+            "state": s.state,  # NEW: Include state in response
             "latitude": s.latitude,
             "longitude": s.longitude
         } for s in spots
@@ -70,6 +79,20 @@ def get_forest_roads():
         return response.json()
     except Exception as e:
         return jsonify({"error": "Failed to fetch forest roads", "details": str(e)}), 500
+
+@app.route("/debug")
+def debug():
+    spots = CampingSpot.query.all()
+    return jsonify([
+        {
+            "id": s.id,
+            "name": s.name,
+            "location": s.location,
+            "state": s.state,
+            "latitude": s.latitude,
+            "longitude": s.longitude
+        } for s in spots
+    ])
 
 if __name__ == "__main__":
     app.run(debug=True)

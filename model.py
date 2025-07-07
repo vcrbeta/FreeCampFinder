@@ -10,6 +10,7 @@ class CampingSpot(db.Model):
     name = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
+    state = db.Column(db.String(2))  # NEW: Added state field
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
 
