@@ -3,68 +3,72 @@
 {% block title %}Welcome - FreeCampFinder{% endblock %}
 
 {% block content %}
-<div style="text-align: center; padding: 2rem;">
-    <h1 style="color: #2a6f97; font-size: 2.5em; margin-bottom: 1rem;">Welcome to FreeCampFinder!</h1>
-    <p style="font-size: 1.2em; color: #666; margin-bottom: 2rem;">
-        Discover amazing public land camping spots across the United States. 
-        Find hidden gems, forest boundaries, and camping locations perfect for your next adventure.
-    </p>
+<div class="home-content" style="text-align: center; padding: 3rem;">
+    <div style="background: white; padding: 3rem; border-radius: 15px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); border: 3px solid #ccc; margin-bottom: 3rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+        <h1 style="color: #2a6f97; font-size: 3em; margin-bottom: 1.5rem; font-family: 'Bitter', serif; margin-top: 0;">
+            Welcome to FreeCampFinder!
+        </h1>
+        <p style="font-size: 1.4em; color: #1a252f; margin-bottom: 0; font-weight: 600; line-height: 1.8;">
+            Discover amazing public land camping spots across the United States. 
+            Find hidden gems, forest boundaries, and camping locations perfect for your next adventure.
+        </p>
+    </div>
     
     {% if session.user_id %}
-        <div style="background: #e8f5e8; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
-            <h3 style="color: #2a6f97;">Welcome back, {{ session.username }}!</h3>
-            <p>Ready to explore some camping spots?</p>
-            <a href="{{ url_for('map_view') }}" style="background: #2a6f97; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 5px; font-size: 1.1em;">
+        <div class="text-content" style="background: rgba(232, 245, 232, 0.95); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; border: 2px solid rgba(40, 167, 69, 0.3);">
+            <h3 style="color: #2a6f97; font-size: 1.8em; margin-bottom: 1rem;">Welcome back, {{ session.username }}!</h3>
+            <p style="color: #2c3e50; font-size: 1.1em; margin-bottom: 1.5rem; font-weight: 500;">Ready to explore some camping spots?</p>
+            <a href="{{ url_for('map_view') }}" style="background: linear-gradient(135deg, #2a6f97, #1e5a7a); color: white; padding: 1.2rem 2.5rem; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: 600; display: inline-block; box-shadow: 0 6px 20px rgba(42, 111, 151, 0.4); transition: all 0.3s ease;">
                 View Camping Map
             </a>
         </div>
     {% else %}
-        <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto;">
-            <h3 style="color: #2a6f97; margin-bottom: 1.5rem;">Get Started</h3>
-            <p style="margin-bottom: 1.5rem;">Join our community to add your favorite camping spots and explore new locations!</p>
+        <div class="text-content" style="background: rgba(255, 255, 255, 0.98); padding: 2.5rem; border-radius: 15px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); max-width: 450px; margin: 0 auto; border: 3px solid rgba(255, 255, 255, 0.7);">
+            <h3 style="color: #2a6f97; margin-bottom: 1.5rem; font-size: 1.8em; font-family: 'Bitter', serif;">Get Started</h3>
+            <p style="margin-bottom: 2rem; color: #2c3e50; font-size: 1.1em; font-weight: 500; line-height: 1.6;">Join our community to add your favorite camping spots and explore new locations!</p>
             
-            <div style="display: flex; gap: 1rem; justify-content: center;">
-                <a href="{{ url_for('login') }}" style="background: #2a6f97; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1.5rem;">
+                <a href="{{ url_for('login') }}" style="background: linear-gradient(135deg, #2a6f97, #1e5a7a); color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 15px rgba(42, 111, 151, 0.3); transition: all 0.3s ease;">
                     Login
                 </a>
-                <a href="{{ url_for('register') }}" style="background: #28a745; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                <a href="{{ url_for('register') }}" style="background: linear-gradient(135deg, #28a745, #1e7e34); color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3); transition: all 0.3s ease;">
                     Register
                 </a>
             </div>
             
-            <p style="margin-top: 1rem; font-size: 0.9em; color: #666;">
-                Or <a href="{{ url_for('map_view') }}" style="color: #2a6f97;">browse camping spots</a> without an account
+            <p style="margin-top: 1rem; font-size: 1rem; color: #495057; font-weight: 500;">
+                Or <a href="{{ url_for('map_view') }}" style="color: #2a6f97; font-weight: 600; text-decoration: none;">browse camping spots</a> without an account
             </p>
         </div>
     {% endif %}
 </div>
 
 <!-- Features Section -->
-<section style="margin-top: 3rem; padding: 2rem; background: white; border-radius: 10px;">
-    <h2 style="text-align: center; color: #2a6f97; margin-bottom: 2rem;">What You'll Find</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-        <div style="text-align: center; padding: 1rem;">
-            <div style="background: #e8f5e8; width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5em;">
+<section class="text-content" style="margin-top: 3rem; padding: 2.5rem; background: rgba(255, 255, 255, 0.98); border-radius: 15px;">
+    <h2 style="text-align: center; color: #2a6f97; margin-bottom: 2.5rem; font-size: 2.5em; font-family: 'Bitter', serif;">What You'll Find</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2.5rem;">
+        <div class="feature-card" style="text-align: center; padding: 2rem; background: rgba(248, 249, 250, 0.9); border-radius: 12px; border: 2px solid rgba(42, 111, 151, 0.1); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);">
+            <div style="background: linear-gradient(135deg, #e8f5e8, #d4edda); width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5em; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);">
                 🏕️
             </div>
-            <h3 style="color: #2a6f97;">Free Camping Spots</h3>
-            <p style="color: #666;">Discover dispersed camping locations on public lands across multiple states.</p>
+            <h3 style="color: #2a6f97; font-size: 1.4em; margin-bottom: 1rem;">Free Camping Spots</h3>
+            <p style="color: #2c3e50; font-weight: 500; line-height: 1.6;">Discover dispersed camping locations on public lands across multiple states.</p>
         </div>
         
-        <div style="text-align: center; padding: 1rem;">
-            <div style="background: #e8f5e8; width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5em;">
+        <div class="feature-card" style="text-align: center; padding: 2rem; background: rgba(248, 249, 250, 0.9); border-radius: 12px; border: 2px solid rgba(42, 111, 151, 0.1); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);">
+            <div style="background: linear-gradient(135deg, #e8f5e8, #d4edda); width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5em; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);">
                 🌲
             </div>
-            <h3 style="color: #2a6f97;">Forest Boundaries</h3>
-            <p style="color: #666;">View national forest boundaries and understand where you can camp legally.</p>
+            <h3 style="color: #2a6f97; font-size: 1.4em; margin-bottom: 1rem;">Forest Boundaries</h3>
+            <p style="color: #2c3e50; font-weight: 500; line-height: 1.6;">View national forest boundaries and understand where you can camp legally.</p>
         </div>
         
-        <div style="text-align: center; padding: 1rem;">
-            <div style="background: #e8f5e8; width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5em;">
+        <div class="feature-card" style="text-align: center; padding: 2rem; background: rgba(248, 249, 250, 0.9); border-radius: 12px; border: 2px solid rgba(42, 111, 151, 0.1); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);">
+            <div style="background: linear-gradient(135deg, #e8f5e8, #d4edda); width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5em; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);">
                 🗺️
             </div>
-            <h3 style="color: #2a6f97;">Interactive Maps</h3>
-            <p style="color: #666;">Explore detailed maps with forest roads and camping locations marked.</p>
+            <h3 style="color: #2a6f97; font-size: 1.4em; margin-bottom: 1rem;">Interactive Maps</h3>
+            <p style="color: #2c3e50; font-weight: 500; line-height: 1.6;">Explore detailed maps with forest roads and camping locations marked.</p>
         </div>
     </div>
 </section>

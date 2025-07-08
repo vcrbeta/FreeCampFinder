@@ -5,82 +5,344 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FreeCampFinder{% endblock %}</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&family=Bitter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%);
+            font-family: 'Raleway', sans-serif;
             min-height: 100vh;
+            background: 
+                linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+                url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+        }
+        
+        /* Backup wallpaper in case primary doesn't load */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80') no-repeat center center;
+            background-size: cover;
+            z-index: -2;
         }
         
         .navbar {
-            background: #2a6f97;
+            background: rgba(42, 111, 151, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 1rem 2rem;
             color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .navbar h1 {
             margin: 0;
-            font-size: 1.5em;
+            font-size: 1.8em;
+            font-family: 'Bitter', serif;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
         }
         
         .navbar a {
             color: white;
             text-decoration: none;
-            margin-left: 1rem;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: background-color 0.3s;
+            margin-left: 1.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .navbar a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
         
         .navbar a:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .navbar a:hover::before {
+            left: 100%;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
+            position: relative;
+            z-index: 1;
         }
         
+        /* Content areas with glass morphism effect */
+        section, .content-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+        
+        section h2, section h3 {
+            font-family: 'Bitter', serif;
+            color: #2a6f97;
+            margin-top: 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        section h2 {
+            font-size: 2.2em;
+            font-weight: 600;
+            border-bottom: 3px solid #2a6f97;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        section h3 {
+            font-size: 1.6em;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        
+        /* Map styling */
+        #map {
+            height: 500px;
+            border-radius: 12px;
+            box-shadow: 
+                0 12px 28px rgba(0, 0, 0, 0.4),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* Form styling */
+        form {
+            background: rgba(248, 249, 250, 0.8);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(42, 111, 151, 0.2);
+        }
+        
+        input, select, textarea, button {
+            font-family: 'Raleway', sans-serif;
+            border-radius: 8px;
+            border: 2px solid rgba(42, 111, 151, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2a6f97;
+            box-shadow: 0 0 0 3px rgba(42, 111, 151, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #2a6f97, #1e5a7a);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(42, 111, 151, 0.4);
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        /* Flash messages */
+        .flash-message {
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .flash-success {
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .flash-error {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+        
+        .flash-info {
+            background: rgba(23, 162, 184, 0.9);
+            color: white;
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+        }
+        
+        /* Legend styling */
         .info.legend {
-            background: white;
-            padding: 10px;
-            line-height: 1.5em;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-            border-radius: 5px;
-            font-size: 14px;
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            padding: 15px !important;
+            line-height: 1.8em !important;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
+            border-radius: 10px !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            font-size: 14px !important;
         }
         
         .legend h4 {
-            margin: 0 0 10px 0;
-            color: #2a6f97;
+            margin: 0 0 12px 0 !important;
+            color: #2a6f97 !important;
+            font-family: 'Bitter', serif !important;
+            font-weight: 600 !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .navbar h1 {
+                margin-bottom: 1rem;
+                font-size: 1.5em;
+            }
+            
+            .navbar a {
+                margin: 0 0.5rem;
+                font-size: 0.9em;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            section {
+                padding: 1.5rem;
+            }
+            
+            #map {
+                height: 400px;
+            }
+        }
+        
+        /* Scrollbar styling for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(42, 111, 151, 0.6);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(42, 111, 151, 0.8);
         }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <h1><a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">FreeCampFinder</a></h1>
+        <h1><a href="/" style="color: white; text-decoration: none;">FreeCampFinder</a></h1>
         <div>
             {% if session.user_id %}
-                <span>Welcome, {{ session.username }}!</span>
-                <a href="{{ url_for('map_view') }}">Map</a>
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <span style="margin-right: 1rem; font-weight: 500;">Welcome, {{ session.username }}!</span>
+                <a href="/map">Map</a>
+                <a href="/logout">Logout</a>
             {% else %}
-                <a href="{{ url_for('map_view') }}">Browse Map</a>
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('register') }}">Register</a>
+                <a href="/map">Browse Map</a>
+                <a href="/login">Login</a>
+                <a href="/register">Register</a>
             {% endif %}
         </div>
     </nav>
     
     <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash-message flash-info">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
         {% block content %}{% endblock %}
     </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="/static/js/script.js"></script>
+    
+    {% block scripts %}{% endblock %}
 </body>
 </html>

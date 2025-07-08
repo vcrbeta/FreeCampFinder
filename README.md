@@ -19,4 +19,7 @@ python app.py
 export FLASK_RUN_OPEN_BROWSER=true
 flask run
 
-
+# After installing requirements, you can also run:
+export FLASK_APP=app.py
+export FLASK_ENV=development
+flask run
