@@ -1,48 +1,77 @@
-// Make map a global variable or pass it to fetchCampingSpots
-// so markers can be added to it.
-let map; // Declare map globally so fetchCampingSpots can access it
-let campingMarkers = []; // Store camping spot markers separately
+let map;
+let forestBoundariesLayer;
+let forestRoadsLayer;
+let campingSpotsLayer;
 
-// State center coordinates for map positioning
-const stateCoordinates = {
-    'CO': [39.5, -105.5],
-    'CA': [36.7, -119.7],
-    'AZ': [34.0, -111.0],
-    'UT': [39.3, -111.6],
-    'NV': [38.8, -116.4],
-    'WY': [43.0, -107.6],
-    'MT': [47.0, -110.0],
-    'ID': [44.0, -114.0],
-    'WA': [47.4, -120.7],
-    'OR': [44.0, -120.5]
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-    // Check if #map exists before initializing map logic
-    const mapContainer = document.getElementById("map");
-    if (mapContainer) {
-        initMap(); // Initialize map first so 'map' object is available
-    }
-    fetchCampingSpots(); // Then fetch camping spots and add them to the map
+function initMap() {
+    console.log("Initializing map...");
+    map = L.map('map').setView([39.8283, -98.5795], 4);
     
-    // NEW: Add state filter event listener
-    const stateFilter = document.getElementById("state-filter");
-    if (stateFilter) {
-        stateFilter.addEventListener("change", () => {
-            fetchCampingSpots(stateFilter.value);
-        });
-    }
-    
-    // NEW: Add form submission handler
-    const addSpotForm = document.getElementById("add-spot-form");
-    if (addSpotForm) {
-        addSpotForm.addEventListener("submit", handleAddSpot);
-    }
-});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-// UPDATED: Modified to accept state parameter and handle filtering
-function fetchCampingSpots(state = "") {
-    let url = "/api/camping_spots";
+    // Initialize layer groups
+    forestBoundariesLayer = L.layerGroup().addTo(map);
+    forestRoadsLayer = L.layerGroup();
+    campingSpotsLayer = L.layerGroup().addTo(map);
+
+    // Load initial data
+    loadCampingSpots();
+    loadForestBoundaries();
+    
+    // Add legend
+    addMapLegend(map);
+    
+    // Add layer control
+    const overlayMaps = {
+        "Forest Boundaries": forestBoundariesLayer,
+        "Forest Roads": forestRoadsLayer,
+        "Camping Spots": campingSpotsLayer
+    };
+    
+    L.control.layers(null, overlayMaps).addTo(map);
+    
+    // Add click handler for adding new camping spots
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        // Check if user is logged in (you might want to check session on backend)
+        const name = prompt("Enter camping spot name:");
+        const location = prompt("Enter location description:");
+        const description = prompt("Enter description (optional):");
+        const state = prompt("Enter state (2-letter code):");
+        
+        if (name && location && state) {
+            addCampingSpot(name, location, description, state, lat, lng);
+        }
+    });
+}
+
+function addMapLegend(map) {
+    const legend = L.control({ position: "bottomright" });
+
+    legend.onAdd = function () {
+        const div = L.DomUtil.create("div", "info legend");
+        div.innerHTML += "<h4>Map Legend</h4>";
+        div.innerHTML +=
+            '<i style="background: #228B22; width: 18px; height: 18px; display: inline-block; margin-right: 5px; border: 1px solid #000;"></i> Forest Boundaries<br>';
+        div.innerHTML +=
+            '<i style="background: #8B4513; width: 18px; height: 18px; display: inline-block; margin-right: 5px; border: 1px solid #000;"></i> Forest Roads<br>';
+        div.innerHTML +=
+            '<img src="https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png" alt="Pin" style="vertical-align:middle; margin-right:5px; width: 20px; height: 30px;"> Camping Spots<br>';
+        div.innerHTML +=
+            '<small style="color: #666; font-style: italic;">Click map to add new camping spots</small>';
+        return div;
+    };
+
+    legend.addTo(map);
+}
+
+function loadCampingSpots(state = null) {
+    console.log("Loading camping spots...");
+    let url = '/api/camping_spots';
     if (state) {
         url += `?state=${state}`;
     }
@@ -50,143 +79,140 @@ function fetchCampingSpots(state = "") {
     fetch(url)
         .then(response => response.json())
         .then(data => {
-            console.log("Fetched camping spots:", data); // Debug log
+            console.log("Received camping spots:", data);
+            campingSpotsLayer.clearLayers();
             
-            const list = document.getElementById("camping-list");
-            if (list) {
-                list.innerHTML = "";
-                
-                // Clear ONLY camping markers (not forest boundaries/roads)
-                if (map && campingMarkers.length > 0) {
-                    campingMarkers.forEach(marker => {
-                        map.removeLayer(marker);
-                    });
-                    campingMarkers = []; // Reset the array
+            data.forEach(spot => {
+                if (spot.latitude && spot.longitude) {
+                    const marker = L.marker([spot.latitude, spot.longitude])
+                        .bindPopup(`
+                            <strong>${spot.name}</strong><br>
+                            <em>${spot.location}</em><br>
+                            ${spot.description || ''}<br>
+                            <small>State: ${spot.state}</small>
+                        `);
+                    campingSpotsLayer.addLayer(marker);
                 }
-                
-                // Move map to state if a state is selected
-                if (state && stateCoordinates[state] && map) {
-                    map.setView(stateCoordinates[state], 7);
-                } else if (!state && map) {
-                    // If "All States" is selected, zoom out to show more area
-                    map.setView([39.5, -105.5], 5);
-                }
-                
-                data.forEach(spot => {
-                    const li = document.createElement("li");
-                    li.textContent = `${spot.name} — ${spot.location}${spot.state ? ` (${spot.state})` : ''}`;
-                    list.appendChild(li);
-
-                    // Add markers for camping spots and store them
-                    if (map && spot.latitude && spot.longitude) {
-                        console.log("Adding marker for:", spot.name, spot.latitude, spot.longitude); // Debug log
-                        
-                        const marker = L.marker([spot.latitude, spot.longitude])
-                            .addTo(map)
-                            .bindPopup(`<b>${spot.name}</b><br>${spot.description || spot.location}${spot.state ? `<br><strong>State:</strong> ${spot.state}` : ''}`);
-                        
-                        campingMarkers.push(marker); // Store the marker reference
-                    }
-                });
-                
-                console.log("Total camping markers:", campingMarkers.length); // Debug log
-                
-                // Show message if no spots found
-                if (data.length === 0) {
-                    const li = document.createElement("li");
-                    li.textContent = state ? `No camping spots found in ${state}` : "No camping spots available";
-                    li.style.fontStyle = "italic";
-                    li.style.color = "#666";
-                    list.appendChild(li);
-                }
-            }
+            });
         })
-        .catch(err => {
-            console.error("Error loading camping spots:", err);
+        .catch(error => {
+            console.error('Error loading camping spots:', error);
         });
 }
 
-// NEW: Handle adding new spots
-function handleAddSpot(event) {
-    event.preventDefault();
+function loadForestBoundaries() {
+    console.log("Loading forest boundaries...");
+    fetch('/api/forest_boundaries')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Received forest boundaries:", data);
+            forestBoundariesLayer.clearLayers();
+            
+            if (data.features) {
+                L.geoJSON(data, {
+                    style: {
+                        color: '#228B22',
+                        weight: 2,
+                        fillColor: '#228B22',
+                        fillOpacity: 0.1
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.FORESTNAME) {
+                            layer.bindPopup(`<strong>${feature.properties.FORESTNAME}</strong>`);
+                        }
+                    }
+                }).addTo(forestBoundariesLayer);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading forest boundaries:', error);
+        });
+}
+
+function loadForestRoads() {
+    console.log("Loading forest roads...");
+    fetch('/api/forest_roads')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Received forest roads:", data);
+            forestRoadsLayer.clearLayers();
+            
+            if (data.features) {
+                L.geoJSON(data, {
+                    style: {
+                        color: '#8B4513',
+                        weight: 2,
+                        opacity: 0.7
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.ROADNAME) {
+                            layer.bindPopup(`<strong>Road:</strong> ${feature.properties.ROADNAME}`);
+                        }
+                    }
+                }).addTo(forestRoadsLayer);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading forest roads:', error);
+        });
+}
+
+function addCampingSpot(name, location, description, state, latitude, longitude) {
+    console.log("Adding camping spot:", name, location, description, state, latitude, longitude);
     
     const spotData = {
-        name: document.getElementById("spot-name").value,
-        location: document.getElementById("spot-location").value,
-        state: document.getElementById("spot-state").value,
-        description: document.getElementById("spot-description").value,
-        latitude: parseFloat(document.getElementById("spot-latitude").value) || null,
-        longitude: parseFloat(document.getElementById("spot-longitude").value) || null
+        name: name,
+        location: location,
+        description: description,
+        state: state,
+        latitude: latitude,
+        longitude: longitude
     };
     
-    fetch("/api/camping_spots", {
-        method: "POST",
+    fetch('/api/camping_spots', {
+        method: 'POST',
         headers: {
-            "Content-Type": "application/json"
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify(spotData)
     })
     .then(response => response.json())
     .then(data => {
+        console.log("Response from server:", data);
         if (data.success) {
-            alert("Success! Spot added.");
-            document.getElementById("add-spot-form").reset();
-            fetchCampingSpots(); // Refresh the list
+            // Add marker to map immediately
+            const marker = L.marker([latitude, longitude])
+                .bindPopup(`
+                    <strong>${name}</strong><br>
+                    <em>${location}</em><br>
+                    ${description || ''}<br>
+                    <small>State: ${state}</small>
+                `);
+            campingSpotsLayer.addLayer(marker);
+            
+            alert("Camping spot added successfully!");
         } else {
-            alert("Error adding spot: " + (data.error || "Unknown error"));
+            alert("Error adding camping spot: " + (data.error || "Unknown error"));
         }
     })
-    .catch(err => {
-        console.error("Error adding spot:", err);
-        alert("Error adding spot. Please try again.");
+    .catch(error => {
+        console.error('Error adding camping spot:', error);
+        alert("Error adding camping spot. Please try again.");
     });
 }
 
-function initMap() {
-    // Adjust view to Colorado where your data is filtered
-    map = L.map("map").setView([39.5, -105.5], 7); 
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors"
-    }).addTo(map);
-
-    console.log("Map initialized"); // Debug log
-
-    // Load forest boundaries with popups - but don't let them interfere with camping markers
-    fetch("/api/forest_boundaries")
-        .then(res => res.json())
-        .then(data => {
-            console.log("Loading forest boundaries..."); // Debug log
-            L.geoJSON(data, {
-                style: { color: "green", weight: 2, fillOpacity: 0.1 },
-                onEachFeature: function(feature, layer) {
-                    // Use FORESTNAME property for USFS boundaries
-                    const name = feature.properties?.FORESTNAME || "Unnamed Boundary"; 
-                    layer.bindPopup(`<b>Forest:</b> ${name}`);
-                }
-            }).addTo(map);
-        })
-        .catch(err => {
-            console.error("Error loading forest boundaries:", err);
-            // Don't let forest boundary errors stop camping markers from working
-        });
-
-    // Load forest roads with popups - but don't let them interfere with camping markers
-    fetch("/api/forest_roads")
-        .then(res => res.json())
-        .then(data => {
-            console.log("Loading forest roads..."); // Debug log
-            L.geoJSON(data, {
-                style: { color: "gray", weight: 1 },
-                onEachFeature: function(feature, layer) {
-                    // Check console.log(feature.properties) to confirm road name property
-                    const name = feature.properties && (feature.properties.NAME || feature.properties.Name) || "Unnamed Road";
-                    layer.bindPopup(`<b>Road:</b> ${name}`);
-                }
-            }).addTo(map);
-        })
-        .catch(err => {
-            console.error("Error loading forest roads:", err);
-            // Don't let road errors stop camping markers from working
-        });
+function filterByState() {
+    const stateSelect = document.getElementById('stateFilter');
+    const selectedState = stateSelect.value;
+    
+    if (selectedState === 'all') {
+        loadCampingSpots();
+    } else {
+        loadCampingSpots(selectedState);
+    }
 }
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+});

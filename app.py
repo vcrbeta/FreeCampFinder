@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, session, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///camping.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'  # Change this in production
 db = SQLAlchemy(app)
 
 class CampingSpot(db.Model):
@@ -13,17 +15,69 @@ class CampingSpot(db.Model):
     name = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    state = db.Column(db.String(2))  # NEW: Added state field
+    state = db.Column(db.String(2))
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
 
+class User(db.Model):
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), nullable=False, unique=True)
+    password = db.Column(db.String(200), nullable=False)
+
 @app.route("/")
 def index():
+    return render_template("home.html")
+
+@app.route("/map")
+def map_view():
     return render_template("index.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    from forms import RegisterForm
+    form = RegisterForm()
+    if form.validate_on_submit():
+        existing_user = User.query.filter_by(username=form.username.data).first()
+        if existing_user:
+            flash("Username already exists.")
+            return redirect("/register")
+
+        hashed_pw = generate_password_hash(form.password.data)
+        new_user = User(username=form.username.data, password=hashed_pw)
+        db.session.add(new_user)
+        db.session.commit()
+        flash("Registration successful!")
+        return redirect("/login")
+    return render_template("register.html", form=form)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    from forms import LoginForm
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and check_password_hash(user.password, form.password.data):
+            session["user_id"] = user.id
+            session["username"] = user.username
+            flash("Login successful!")
+            return redirect("/map")
+        flash("Invalid username or password.")
+    return render_template("login.html", form=form)
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("You have been logged out.")
+    return redirect("/")
 
 @app.route("/api/camping_spots", methods=["GET", "POST"])
 def camping_spots():
     if request.method == "POST":
+        # Check if user is logged in for adding spots
+        if "user_id" not in session:
+            return jsonify({"success": False, "error": "Please log in to add camping spots"}), 401
+            
         data = request.get_json()
         if not data:
             return jsonify({"success": False, "error": "Invalid JSON"}), 400
@@ -32,7 +86,7 @@ def camping_spots():
             name=data.get("name"),
             location=data.get("location"),
             description=data.get("description"),
-            state=data.get("state"),  # NEW: Handle state in POST
+            state=data.get("state"),
             latitude=data.get("latitude"),
             longitude=data.get("longitude")
         )
@@ -40,7 +94,7 @@ def camping_spots():
         db.session.commit()
         return jsonify({"success": True, "id": new_spot.id}), 201
 
-    # NEW: Handle state filtering in GET request
+    # GET request - handle state filtering
     state = request.args.get("state")
     query = CampingSpot.query
     if state:
@@ -52,7 +106,7 @@ def camping_spots():
             "name": s.name,
             "location": s.location,
             "description": s.description,
-            "state": s.state,  # NEW: Include state in response
+            "state": s.state,
             "latitude": s.latitude,
             "longitude": s.longitude
         } for s in spots

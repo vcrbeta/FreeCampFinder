@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Register - FreeCampFinder{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h2 style="text-align: center; color: #2a6f97; margin-bottom: 2rem;">Register</h2>
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background: #f8d7da; color: #721c24; padding: 0.75rem; border-radius: 5px; margin-bottom: 1rem;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div style="margin-bottom: 1rem;">
+            {{ form.username.label(style="display: block; margin-bottom: 0.5rem; font-weight: bold;") }}
+            {{ form.username(style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; box-sizing: border-box;") }}
+            {% if form.username.errors %}
+                {% for error in form.username.errors %}
+                    <div style="color: #721c24; font-size: 0.9rem; margin-top: 0.25rem;">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            {{ form.password.label(style="display: block; margin-bottom: 0.5rem; font-weight: bold;") }}
+            {{ form.password(style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; box-sizing: border-box;") }}
+            {% if form.password.errors %}
+                {% for error in form.password.errors %}
+                    <div style="color: #721c24; font-size: 0.9rem; margin-top: 0.25rem;">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            {{ form.confirm_password.label(style="display: block; margin-bottom: 0.5rem; font-weight: bold;") }}
+            {{ form.confirm_password(style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; box-sizing: border-box;") }}
+            {% if form.confirm_password.errors %}
+                {% for error in form.confirm_password.errors %}
+                    <div style="color: #721c24; font-size: 0.9rem; margin-top: 0.25rem;">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        {{ form.submit(style="width: 100%; background: #28a745; color: white; padding: 0.75rem; border: none; border-radius: 5px; font-size: 1rem; font-weight: bold; cursor: pointer;") }}
+    </form>
+    
+    <p style="text-align: center; margin-top: 1.5rem; color: #666;">
+        Already have an account? <a href="{{ url_for('login') }}" style="color: #2a6f97;">Login here</a>
+    </p>
+    
+    <p style="text-align: center; margin-top: 1rem;">
+        <a href="{{ url_for('index') }}" style="color: #2a6f97;">← Back to Home</a>
+    </p>
+</div>
+{% endblock %}
